@@ -55,52 +55,22 @@ def main():
 	print("Downloading http://boards.4chan.org/"+board+"/thread/"+number+" -- "+data["posts"][0]["semantic_url"]+'\n')
 
 	#creating a folder to store downloaded files
-	#only try twice if name collisions
+	#if it already exists, move to it
 	fol=data["posts"][0]["semantic_url"]
 	try:
 		os.mkdir(fol)
-	except FileExistsError:
-		try:
-			fol+="-4chdl"
-			os.mkdir(fol)
-		except FileExistsError:
-			print("Folder name collision...\nExiting...")
-			sys.exit(1)
+	except OSError:
+		pass
 	os.chdir(fol)
 
 	#download all the files using 4chan API
-	#also keep track of which posts have already been downloaded
+	#if a file exists, skip it
 	for i in data["posts"]:
 		if "fsize" in i:
-			lastpost=i["no"]
+			if os.path.exists(i["filename"]+i["ext"]):
+				continue
 			with open(i["filename"]+i["ext"],"wb") as file:
 				file.write(urllib.request.urlopen("https://i.4cdn.org/"+board+'/'+str(i["tim"])+i["ext"]).read())
-	#after downloading all the files, wait 2 minutes before checking for new posts
-	#only stop when image limit reached, thread 404s, thread archives/closes
-	#, or keyboard interrupt
-	while(True):
-		print(".. ")
-		time.sleep(120)
-		try:
-			data=json.load(codecs.getreader("utf-8")(urllib.request.urlopen("http://a.4cdn.org/"+board+"/thread/"+number+".json")))
-		except urllib.error.HTTPError:
-			print("Thread can't be found anymore, exiting...")
-			sys.exit(1)
-		for i in data["posts"]:
-			if i["no"]>lastpost:
-				if "fsize" in i:
-					lastpost=i["no"]
-					with open(i["filename"]+i["ext"],"wb") as file:
-		                                file.write(urllib.request.urlopen("https://i.4cdn.org/"+board+'/'+str(i["tim"])+i["ext"]).read())
-		if data["posts"][0]["imagelimit"]:
-			print("image limit reached, exiting...")
-			sys.exit(1)
-		try:
-			if (data["posts"][0]["closed"] or data["posts"][0]["archived"]):
-				print("thread is closed/archived, exiting...")
-				sys.exit(1)
-		except KeyError:
-			pass
 
 if __name__=="__main__":
 	try:
