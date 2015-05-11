@@ -57,11 +57,11 @@ def main():
 	#creating a folder to store downloaded files
 	#if it already exists, move to it
 	fol=data["posts"][0]["semantic_url"]
-	try:
+	if os.path.exists(fol):
+		os.chdir(fol)
+	else:
 		os.mkdir(fol)
-	except OSError:
-		pass
-	os.chdir(fol)
+		os.chdir(fol)
 
 	#download all the files using 4chan API
 	#if a file exists, skip it

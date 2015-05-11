@@ -57,15 +57,16 @@ def main():
 	#creating a folder to store downloaded files
 	#only try twice if name collisions
 	fol=data["posts"][0]["semantic_url"]
-	try:
-		os.mkdir(fol)
-	except FileExistsError:
+
+	if os.path.exists(fol):
+		fol+="-4chdl"
 		try:
-			fol+="-4chdl"
 			os.mkdir(fol)
-		except FileExistsError:
-			print("Folder name collision...\nExiting...")
+		except OSError:
+			print("Folder name collision....\nExiting...")
 			sys.exit(1)
+	else:
+		os.mkdir(fol)
 	os.chdir(fol)
 
 	#download all the files using 4chan API
