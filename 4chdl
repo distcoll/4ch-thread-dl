@@ -45,6 +45,7 @@ def main():
 
 	#download all the files using 4chan API
 	#also keep track of which posts have already been downloaded
+	counter=0
 	for i in data.json()["posts"]:
 		if "fsize" in i:
 			lastpost=i["no"]
@@ -52,10 +53,13 @@ def main():
 				pic=requests.get("https://i.4cdn.org/"+board+'/'+str(i["tim"])+i["ext"])
 				for part in pic.iter_content(4096):
 					file.write(part)
+			counter+=1
+	print(str(counter)+" images have been downloaded")
 	#after downloading all the files, wait 2 minutes before checking for new posts
 	#only stop when image limit reached, thread 404s, thread archives/closes
 	#, or keyboard interrupt
 	while(args.continuous):
+		counter=0
 		print(".. ")
 		time.sleep(120)
 		try:
@@ -71,6 +75,7 @@ def main():
 						pic=requests.get("https://i.4cdn.org/"+board+'/'+str(i["tim"])+i["ext"])
 						for part in pic.iter_content(4096):
 							file.write(part)
+					counter+=1
 		try:
 			if data.json()["posts"][0]["imagelimit"]:
 				print("image limit reached, exiting...")
@@ -83,6 +88,7 @@ def main():
 				sys.exit(1)
 		except KeyError:
 			pass
+		print(str(counter)+" more images have been downloaded")
 
 if __name__=="__main__":
 	try:
