@@ -2,20 +2,15 @@
 
 __author__="distcoll"
 __license__="MIT License"
-__version__="1.0"
-__email__="morgoth314@gmail.com"
-__status__="complete"
-__date__="2015-5-10"
 __api__="https://github.com/4chan/4chan-API"
 
-import json
-import codecs
-import urllib.request
+import requests
 import os
 import sys
-import time
 def main():
 	
+###change this to use argparse!
+
 	#setting up board and thread number, regardless of
 	#command line order and also allowing no command line
 	#inputs
@@ -46,17 +41,24 @@ def main():
 
 	#retrieving the json of the thread using 4chan API
 	try:
-		data=json.load(codecs.getreader("utf-8")(urllib.request.urlopen("http://a.4cdn.org/"+board+"/thread/"+number+".json")))
-	except urllib.error.HTTPError:
-		print("thread not found, exiting...")
+		data=requests.get("http://a.4cdn.org/"+board+"/thread/"+number+".json")
+	except:
+		print("tbd")
 		sys.exit(1)
+	#need a new error handler here
+#	except urllib.error.HTTPError:
+#		print("thread not found, exiting...")
+#		sys.exit(1)
 
 	#notifying user of what's being downloaded
-	print("Downloading http://boards.4chan.org/"+board+"/thread/"+number+" -- "+data["posts"][0]["semantic_url"]+'\n')
+	print("Downloading http://boards.4chan.org/"+board+"/thread/"+number+" -- "+data.json()["posts"][0]["semantic_url"]+'\n')
+
+
+##move this part up to the top in this and continuous.py so that if there is an error, it happens sooner
 
 	#creating a folder to store downloaded files
 	#if it already exists, move to it
-	fol=data["posts"][0]["semantic_url"]
+	fol=data.json()["posts"][0]["semantic_url"]
 	if os.path.exists(fol):
 		os.chdir(fol)
 	else:
@@ -65,12 +67,14 @@ def main():
 
 	#download all the files using 4chan API
 	#if a file exists, skip it
-	for i in data["posts"]:
+	for i in data.json()["posts"]:
 		if "fsize" in i:
 			if os.path.exists(i["filename"]+i["ext"]):
 				continue
 			with open(i["filename"]+i["ext"],"wb") as file:
-				file.write(urllib.request.urlopen("https://i.4cdn.org/"+board+'/'+str(i["tim"])+i["ext"]).read())
+				pic=requests.get("https://i.4cdn.org/"+board+'/'+str(i["tim"])+i["ext"])
+				for part in pic.iter_content(4096):
+					file.write(part)
 
 if __name__=="__main__":
 	try:
